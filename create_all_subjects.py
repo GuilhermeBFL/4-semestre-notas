@@ -5,7 +5,7 @@ import os, openpyxl
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.formatting.rule import FormulaRule
 
-OUT_PATH = r"C:\Users\guilh\4-semestre-notas\4-SEMESTRE-NOTAS.xlsx"
+OUT_PATH = r"C:\Users\guilh\Downloads\4 SEMESTRE\4-SEMESTRE-NOTAS.xlsx"
 
 # ── Estilos ────────────────────────────────────────────────────────────
 def fill(h): return PatternFill(start_color=h, end_color=h, fill_type="solid")
@@ -425,51 +425,47 @@ def build_micro2(wb):
     header4(ws,
         "MICROECONOMIA II — Controle de Notas",
         "Prof. Darcio Martins / Guilherme Carvalho  |  Turma 3D  |  Seg 14:15–16:15 / Qua 14:15–16:15",
-        "MF = 0,10·Q + 0,10·APS + 0,30·AI + 0,50·AF  |  Q = média simples de 6 quizzes",
+        "MF = 0,10·Q + 0,10·APS + 0,30·AI + 0,50·AF  |  Q = média simples de 5 quizzes",
         "Aprovação: MF≥5,0  E  (AI+AF)/2≥4,0")
     inp_header(ws,6)
     rows_in=[
         (8,  "AI — Avaliação Intermediária (30%)","30/03/2026",""),
-        (9,  "Quiz 1","04/03/2026",""),
-        (10, "Quiz 2","11/03/2026",""),
-        (11, "Quiz 3","23/03/2026",""),
-        (12, "Quiz 4","15/04/2026",""),
-        (13, "Quiz 5","06/05/2026",""),
-        (14, "Quiz 6","20/05/2026","Sem descarte — média dos 6"),
-        (15, "APS — Ativ. Prática (10%)","ao longo",""),
-        (16, "AF — Avaliação Final (50%)","27/05/2026",""),
+        (9,  "Quiz #1","04/03/2026",""),
+        (10, "Quiz #2","11/03/2026",""),
+        (11, "Quiz #4","15/04/2026",""),
+        (12, "Quiz #5","06/05/2026",""),
+        (13, "Quiz #6","20/05/2026","Sem descarte — média dos 5"),
+        (14, "APS — Ativ. Prática (10%)","ao longo",""),
+        (15, "AF — Avaliação Final (50%)","27/05/2026",""),
     ]
     for row,label,date,obs in rows_in:
         input_row(ws,row,label,date,obs)
-    spacer(ws,17)
-    calc_hdr(ws,18)
-    calc_row(ws,19,"MQ (Média dos 6 Quizzes)",
-        '=IFERROR(AVERAGE(C9:C14),"—")',
+    spacer(ws,16)
+    calc_hdr(ws,17)
+    calc_row(ws,18,"MQ (Média dos 5 Quizzes)",
+        '=IFERROR(AVERAGE(C9:C13),"—")',
         "Média simples, sem descarte")
-    calc_row(ws,20,"MSP = (AI+AF)/2",
-        '=IF(OR(NOT(ISNUMBER(C8)),NOT(ISNUMBER(C16))),"",( C8+C16)/2)',
+    calc_row(ws,19,"MSP = (AI+AF)/2",
+        '=IF(OR(NOT(ISNUMBER(C8)),NOT(ISNUMBER(C15))),"",( C8+C15)/2)',
         "Mínimo 4,0 p/ aprovação")
-    calc_row(ws,21,"MF (Média Final)",
-        '=IF(OR(NOT(ISNUMBER(C8)),NOT(ISNUMBER(C16))),"",0.1*IF(ISNUMBER(C19),C19,0)+0.1*IF(ISNUMBER(C15),C15,0)+0.3*C8+0.5*C16)',
+    calc_row(ws,20,"MF (Média Final)",
+        '=IF(OR(NOT(ISNUMBER(C8)),NOT(ISNUMBER(C15))),"",0.1*IF(ISNUMBER(C18),C18,0)+0.1*IF(ISNUMBER(C14),C14,0)+0.3*C8+0.5*C15)',
         "0,10·Q+0,10·APS+0,30·AI+0,50·AF")
-    calc_row(ws,22,"Situação atual",
-        '=IF(C21="","Aguardando notas...",IF(AND(C21>=5,IF(C20="",0,C20)>=4),"✓ APROVADO DIRETO!","Em andamento — veja simulação"))',
+    calc_row(ws,21,"Situação atual",
+        '=IF(C20="","Aguardando notas...",IF(AND(C20>=5,IF(C19="",0,C19)>=4),"✓ APROVADO DIRETO!","Em andamento — veja simulação"))',
         "",fmt=None)
-    add_cf(ws,"C22",green=True,red=False)
-    spacer(ws,23)
-    sim_hdr(ws,24)
-    # AF needed: MF>=5 and MSP>=4
-    # From MSP: AF >= 8 - AI
-    # From MF: 0.1*Q+0.1*APS+0.3*AI+0.5*AF>=5 => AF>=(5-0.1*Q-0.1*APS-0.3*AI)/0.5
-    ws["F25"].value='=IF(NOT(ISNUMBER(C8)),-999,MAX(8-C8,(5-0.1*IF(ISNUMBER(C19),C19,0)-0.1*IF(ISNUMBER(C15),C15,0)-0.3*C8)/0.5))'
-    sim_f='=IF(NOT(ISNUMBER(C8)),"Preencha a AI primeiro",IF(F25<=0,"✓ Aprovado direto!",IF(F25>10,"✗ Reprovado mesmo com 10 na AF","Precisa de "&TEXT(ROUND(F25,2),"0.00")&" na AF")))'
-    sc(ws,"A25","Nota necessária na AF (dados atuais)",fn=fnt(bold=True),al=AL)
-    sc(ws,"B25","Brancos = 0 (pior caso)",fn=fnt(italic=True,size=9),al=AC)
-    sc(ws,"C25",sim_f,F_OR,fn=fnt(bold=True),al=AC)
-    ws.row_dimensions[25].height=22
-    add_cf(ws,"C25",green=True,red=True)
+    add_cf(ws,"C21",green=True,red=False)
+    spacer(ws,22)
+    sim_hdr(ws,23)
+    ws["F24"].value='=IF(NOT(ISNUMBER(C8)),-999,MAX(8-C8,(5-0.1*IF(ISNUMBER(C18),C18,0)-0.1*IF(ISNUMBER(C14),C14,0)-0.3*C8)/0.5))'
+    sim_f='=IF(NOT(ISNUMBER(C8)),"Preencha a AI primeiro",IF(F24<=0,"✓ Aprovado direto!",IF(F24>10,"✗ Reprovado mesmo com 10 na AF","Precisa de "&TEXT(ROUND(F24,2),"0.00")&" na AF")))'
+    sc(ws,"A24","Nota necessária na AF (dados atuais)",fn=fnt(bold=True),al=AL)
+    sc(ws,"B24","Brancos = 0 (pior caso)",fn=fnt(italic=True,size=9),al=AC)
+    sc(ws,"C24",sim_f,F_OR,fn=fnt(bold=True),al=AC)
+    ws.row_dimensions[24].height=22
+    add_cf(ws,"C24",green=True,red=True)
     ws.freeze_panes="A8"
-    return "C21"
+    return "C20"
 
 # ════════════════════════════════════════════════════════════════════════
 # 7. MICROECONOMIA III
@@ -658,7 +654,7 @@ def build_inicio(wb, mf_refs):
         ("Finanças II",     "G.Soares / P.Neto",     "Finanças II",      mf_refs[2], "26/05/2026"),
         ("HPE",             "P.Duarte / F.Leite",    "HPE",              mf_refs[3], "28/05/2026"),
         ("Macro Internacional","G.Olivares / G.Duarte","Macro Internacional",mf_refs[4],"27/05/2026"),
-        ("Micro II",        "Darcio / G.Carvalho",   "Micro II",         mf_refs[5], "27/05/2026"),
+        ("Micro II",        "Darcio / G.Carvalho",   "Micro II",         mf_refs[5], "27/05/2026"),  # MF = C20
         ("Micro III",       "I.Furtado / F.Rosa",    "Micro III",        mf_refs[6], "27/05/2026"),
     ]
     for i,(name,prof,sheet,mf_cell,pf_date) in enumerate(subjects,start=5):

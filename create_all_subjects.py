@@ -98,14 +98,14 @@ def build_econometria(wb):
     header4(ws,
         "ECONOMETRIA — Controle de Notas",
         "Prof. Adriana Bortoluzzo / Sérgio Martins  |  Turma 4ECOB  |  Qua 16:30–18:30 / Sex 14:15–16:15",
-        "MP=0,40·AI+0,60·AF  |  MF=MP se MP<4  |  MF=0,75·MP+0,15·MQ+0,10·APS se MP≥4",
+        "MP=0,40·AI+0,60·AF  |  MF=MP se MP<4  |  MF=0,75·MP+0,15·MQ+0,10·APS se MP≥4  |  MQ=2 melhores de 3 quizzes",
         "Aprovação: MF≥5,0  |  APS zero = REPROVAÇÃO AUTOMÁTICA")
     inp_header(ws,6)
     rows_in=[
         (8, "Avaliação Intermediária (AI) — 30% (via MP)","25/03/2026",""),
         (9, "Quiz 1 — para MQ","11/03/2026",""),
         (10,"Quiz 2 — para MQ","20/03/2026",""),
-        (11,"Quiz 3 — para MQ","08/05/2026","Média dos 3 quizzes = MQ (15%)"),
+        (11,"Quiz 3 — para MQ","08/05/2026","Descarta pior → média dos 2 melhores"),
         (12,"APS — Atividade em Aula (10%)","ao longo","Nota zero = reprovação"),
         (13,"Avaliação Final (AF) — 45% (via MP)","27/05/2026",""),
     ]
@@ -113,8 +113,9 @@ def build_econometria(wb):
         input_row(ws,row,label,date,obs)
     spacer(ws,14)
     calc_hdr(ws,15)
-    calc_row(ws,16,"MQ (Média dos Quizzes)",
-        '=IFERROR(AVERAGE(C9:C11),"—")','Média simples de Q1, Q2, Q3')
+    calc_row(ws,16,"MQ (2 melhores quizzes de 3)",
+        '=IF(COUNT(C9:C11)=0,"—",IF(COUNT(C9:C11)<3,AVERAGE(C9:C11),(LARGE(C9:C11,1)+LARGE(C9:C11,2))/2))',
+        "Descarta pior quiz dos 3")
     calc_row(ws,17,"MP (Média das Provas)",
         '=IF(OR(NOT(ISNUMBER(C8)),NOT(ISNUMBER(C13))),"",0.4*C8+0.6*C13)',
         "0,40·AI + 0,60·AF")
@@ -139,53 +140,50 @@ def build_econometria(wb):
 
 # ════════════════════════════════════════════════════════════════════════
 # 2. ESTATÍSTICA II
-# 3 APSs, descarta pior → MA = média das 2 melhores
-# MF_cell = C17
+# MF_cell = C16
 # ════════════════════════════════════════════════════════════════════════
 def build_estatistica(wb):
     ws=wb.create_sheet("Estatística II"); std_cols(ws)
     header4(ws,
         "ESTATÍSTICA II — Controle de Notas",
         "Prof. Maria Kelly Venezuela / Rinaldo Artes  |  Turma 3DPA  |  Qua 19:00–21:00 / Sex 19:00–21:00",
-        "MP=0,35·PI+0,65·PF  |  MA=2 melhores APSs de 3 (descarta pior)  |  MF=MP(MP<4) ou 0,80·MP+0,20·MA(MP≥4)",
+        "MP=0,35·PI+0,65·PF  |  MA=0,50·APS1+0,50·APS2  |  MF=MP(MP<4) ou 0,80·MP+0,20·MA(MP≥4)",
         "Aprovação: MF≥5,0  |  Não entregar NENHUMA APS = REPROVAÇÃO AUTOMÁTICA")
     inp_header(ws,6)
     rows_in=[
-        (8,  "PI — Prova Intermediária (35% do MP)","25/03/2026",""),
-        (9,  "APS 1 — para MA","13/03/2026","Realizada em sala, individual"),
-        (10, "APS 2 — para MA","29/04/2026","Realizada em sala, individual"),
-        (11, "APS 3 — para MA","a confirmar","Descarta pior → média das 2 melhores"),
-        (12, "PF — Prova Final (65% do MP)","27/05/2026",""),
+        (8, "PI — Prova Intermediária (35% do MP)","25/03/2026",""),
+        (9, "APS 1 — 50% da MA","13/03/2026","Realizada em sala, individual"),
+        (10,"APS 2 — 50% da MA","29/04/2026","Realizada em sala, individual"),
+        (11,"PF — Prova Final (65% do MP)","27/05/2026",""),
     ]
     for row,label,date,obs in rows_in:
         input_row(ws,row,label,date,obs)
-    spacer(ws,13)
-    calc_hdr(ws,14)
-    # MA = média das 2 melhores de 3 (se <3 preenchidas usa todas disponíveis)
-    calc_row(ws,15,"MA (2 melhores APSs de 3)",
-        '=IF(COUNT(C9:C11)=0,"—",IF(COUNT(C9:C11)<3,AVERAGE(C9:C11),(LARGE(C9:C11,1)+LARGE(C9:C11,2))/2))',
-        "Descarta pior APS das 3")
-    calc_row(ws,16,"MP (Média das Provas)",
-        '=IF(OR(NOT(ISNUMBER(C8)),NOT(ISNUMBER(C12))),"",0.35*C8+0.65*C12)',
+    spacer(ws,12)
+    calc_hdr(ws,13)
+    calc_row(ws,14,"MA (Média das APS)",
+        '=IF(AND(ISNUMBER(C9),ISNUMBER(C10)),0.5*C9+0.5*C10,IF(ISNUMBER(C9),C9,IF(ISNUMBER(C10),C10,"—")))',
+        "0,50·APS1+0,50·APS2")
+    calc_row(ws,15,"MP (Média das Provas)",
+        '=IF(OR(NOT(ISNUMBER(C8)),NOT(ISNUMBER(C11))),"",0.35*C8+0.65*C11)',
         "0,35·PI+0,65·PF")
-    calc_row(ws,17,"MF (Média Final)",
-        '=IF(C16="","",IF(C16<4,C16,0.8*C16+0.2*IF(ISNUMBER(C15),C15,0)))',
+    calc_row(ws,16,"MF (Média Final)",
+        '=IF(C15="","",IF(C15<4,C15,0.8*C15+0.2*IF(ISNUMBER(C14),C14,0)))',
         "Condicional em MP≥4")
-    calc_row(ws,18,"Situação atual",
-        '=IF(C17="","Aguardando notas...",IF(C17>=5,"✓ APROVADO DIRETO!","Em andamento — veja simulação"))',
+    calc_row(ws,17,"Situação atual",
+        '=IF(C16="","Aguardando notas...",IF(C16>=5,"✓ APROVADO DIRETO!","Em andamento — veja simulação"))',
         "",fmt=None)
-    add_cf(ws,"C18",green=True,red=False)
-    spacer(ws,19)
-    sim_hdr(ws,20)
-    ws["F21"].value='=IF(NOT(ISNUMBER(C8)),-999,MAX((5-0.28*C8-0.2*IF(ISNUMBER(C15),C15,0))/0.52,(4-0.35*C8)/0.65))'
-    sim_f='=IF(NOT(ISNUMBER(C8)),"Preencha a PI primeiro",IF(F21<=0,"✓ Aprovado direto!",IF(F21>10,"✗ Reprovado mesmo com 10 na PF","Precisa de "&TEXT(ROUND(F21,2),"0.00")&" na PF")))'
-    sc(ws,"A21","Nota necessária na PF (dados atuais)",fn=fnt(bold=True),al=AL)
-    sc(ws,"B21","Brancos = 0 (pior caso)",fn=fnt(italic=True,size=9),al=AC)
-    sc(ws,"C21",sim_f,F_OR,fn=fnt(bold=True),al=AC)
-    ws.row_dimensions[21].height=22
-    add_cf(ws,"C21",green=True,red=True)
+    add_cf(ws,"C17",green=True,red=False)
+    spacer(ws,18)
+    sim_hdr(ws,19)
+    ws["F20"].value='=IF(NOT(ISNUMBER(C8)),-999,MAX((5-0.28*C8-0.2*IF(ISNUMBER(C14),C14,0))/0.52,(4-0.35*C8)/0.65))'
+    sim_f='=IF(NOT(ISNUMBER(C8)),"Preencha a PI primeiro",IF(F20<=0,"✓ Aprovado direto!",IF(F20>10,"✗ Reprovado mesmo com 10 na PF","Precisa de "&TEXT(ROUND(F20,2),"0.00")&" na PF")))'
+    sc(ws,"A20","Nota necessária na PF (dados atuais)",fn=fnt(bold=True),al=AL)
+    sc(ws,"B20","Brancos = 0 (pior caso)",fn=fnt(italic=True,size=9),al=AC)
+    sc(ws,"C20",sim_f,F_OR,fn=fnt(bold=True),al=AC)
+    ws.row_dimensions[20].height=22
+    add_cf(ws,"C20",green=True,red=True)
     ws.freeze_panes="A8"
-    return "C17"
+    return "C16"
 
 # ════════════════════════════════════════════════════════════════════════
 # 3. FINANÇAS II
